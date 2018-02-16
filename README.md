@@ -44,6 +44,8 @@ rotors_bits = [
 sender = GWriter(rotors_bits=rotors_bits)
 receiver = GWriter(rotors_bits=rotors_bits)
 
-ciphertext = sender.encrypt('UMUM4VEVE35KING4HENRY4IV35') # ciphertext = F4QR72QKRBZFTECBNMTYI6T2XF
-plaintext = receiver.decrypt(ciphertext)
+plaintext = 'UMUM4VEVE35KING4HENRY4IV35'
+ciphertext = sender.encrypt(plaintext) # ciphertext = F4QR72QKRBZFTECBNMTYI6T2XF
+new_plaintext = receiver.decrypt(ciphertext)
+plaintext == new_plaintext # True
 ```
