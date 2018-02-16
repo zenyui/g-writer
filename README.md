@@ -6,7 +6,8 @@ Breaking the WWII Geheimschreiber
 The [Geheimschreiber](https://en.wikipedia.org/wiki/Siemens_and_Halske_T52) was a WWII cipher machine (successor to the Enigma). The machine consisted of 10 rotors of different sizes with bits that would perform transformations on the input text.
 
 For a given input character, the G-Writer would:
-- lookup the 5-bit binary index of a character in the following alphabet: `2T3O4HNM5LRGIPCVEZDBSYFXAWJ6UQK7` (00000 to 11111)
+- lookup the 5-bit binary index of a character in the following alphabet:
+`2T3O4HNM5LRGIPCVEZDBSYFXAWJ6UQK7`
 - XOR those bits with 5 bits from specific rotors
 - Swap the output bits according to the following:
   - if `bit #5 = 1`, swap bits `0` and `4`
