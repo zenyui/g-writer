@@ -49,3 +49,27 @@ ciphertext = sender.encrypt(plaintext) # ciphertext = F4QR72QKRBZFTECBNMTYI6T2XF
 new_plaintext = receiver.decrypt(ciphertext)
 plaintext == new_plaintext # True
 ```
+
+Also implemented is a `gwriter.crack()` function, which yields an instantiated `GWriter` class object given ciphertext messages and (optionally) the corresponding plaintext messages.
+
+Example:
+
+```python
+from gwriter import crack
+
+with open('./ciphertext_messages.txt', 'r') as f:
+    ciphertext_messages = f.read()
+
+success, receiver = crack(ciphertext_messages=ciphertext_messages)
+
+if success:  
+    ciphertext_messages = ciphertext_messages.strip().splitlines()
+    decrypted_messages = receiver.decrypt(ciphertext_messages)
+
+    with open('./decrypted_messages.txt','w') as f:
+        f.writelines(decrypted_messages)
+```
+
+### The Crack
+
+Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly. The
