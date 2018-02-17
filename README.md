@@ -76,6 +76,8 @@ The provided `cli.py` offers a command-line interface for the `gwriter.crack` fu
 python cli.py -c <path_to_ciphertext> -p <optional_path_to_plaintext>
 ```
 
+Other command-line arguments are available by inspecting `python cli.py --help`.
+
 ### The Crack
 
 Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly.
