@@ -5,7 +5,7 @@ import logging
 
 def crack_3(plaintext, ciphertext):
     logger = logging.getLogger()
-    logger.info('Start attack 3')
+    logger.info('Begin attack with plaintext')
 
     plaintext_concat = ''.join(plaintext.strip().splitlines())
     ciphertext_concat = ''.join(ciphertext.strip().splitlines())

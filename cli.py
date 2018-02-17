@@ -19,7 +19,7 @@ def cli():
 
     plaintext = None
     if a.plaintext:
-        with open(os.path.join(folder, 'plaintext.txt')) as f:
+        with open(a.plaintext, 'r') as f:
             plaintext = f.read().strip()
 
     success, gwriter_obj = gwriter.crack(

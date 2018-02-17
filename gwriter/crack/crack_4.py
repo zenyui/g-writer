@@ -5,7 +5,7 @@ from gwriter import gwriter
 
 def crack_4(ciphertext):
     logger = logging.getLogger()
-    logger.info('Begin Attack 4')
+    logger.info('Begin Attack without plaintext')
 
     ciphertext_messages = ciphertext.strip().splitlines()
 
