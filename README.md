@@ -17,7 +17,7 @@ For a given input character, the G-Writer would:
   - if `bit #9 = 1`, swap bits `3` and `4`
 - Rotate all rotors by 1 bit
 
-The 10 rotors were of lengths `{47, 53, 59, 61, 64, 65, 67, 69, 71, 73}`, and the G-Writer had a switchboard that configured the order that those rotors would be read.
+The 10 rotors were of lengths `{47, 53, 59, 61, 64, 65, 67, 69, 71, 73}`, and the G-Writer had a switchboard that configured the order that the rotors were read.
 
 
 ### Usage
