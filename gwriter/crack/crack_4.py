@@ -1,16 +1,31 @@
 import os
-from itertools import permutations
-from . import gwriter
 import logging
+from itertools import permutations
+from gwriter import gwriter
 
-def crack_3(plaintext, ciphertext):
+def crack_4(ciphertext):
     logger = logging.getLogger()
-    logger.info('Start attack 3')
+    logger.info('Begin Attack 4')
 
-    plaintext_concat = ''.join(plaintext.strip().splitlines())
-    ciphertext_concat = ''.join(ciphertext.strip().splitlines())
+    ciphertext_messages = ciphertext.strip().splitlines()
 
-    known_rotor_lengths = gwriter.ROTOR_LENGTHS
+    logger.info('Create fake plaintext')
+    UNKNOWN = '*'
+
+    plaintext_prefix = 'UMUM4VEVE35'
+    plaintext_suffix = '35'
+    plaintext_filler_len = len(plaintext_prefix) + len(plaintext_suffix)
+
+    plaintext_messages = []
+
+    for c in ciphertext_messages:
+        p = plaintext_prefix + \
+            UNKNOWN * (len(c) - plaintext_filler_len) + \
+            plaintext_suffix
+        plaintext_messages.append(p)
+
+    plaintext_concat = ''.join(plaintext_messages)
+    ciphertext_concat = ''.join(ciphertext_messages)
 
     # write bit streams into continuous separate arrays for each rotor
     logger.info('Solving XOR bits...')
@@ -19,11 +34,10 @@ def crack_3(plaintext, ciphertext):
     for i in range(len(ciphertext_concat)):
         p = plaintext_concat[i]
         c = ciphertext_concat[i]
-
-        pi = gwriter.ALPHABET_MAP[p]
         ci = gwriter.ALPHABET_MAP[c]
 
-        if ci in (0,31):
+        if p != UNKNOWN and ci in (0,31):
+            pi = gwriter.ALPHABET_MAP[p]
             bi = ci ^ pi
             for j in range(5):
                 rotor_placeholders[j].append(gwriter.nth_bit(bi,4-j))
@@ -35,7 +49,7 @@ def crack_3(plaintext, ciphertext):
     possible_rotor_order = []
     for rp in rotor_placeholders[:5]:
         possible = {}
-        for length in known_rotor_lengths:
+        for length in gwriter.ROTOR_LENGTHS:
             possible[length] = 0
             for ix in range(len(rp)-length):
                 c1 = rp[ix]
@@ -59,8 +73,10 @@ def crack_3(plaintext, ciphertext):
     logger.info('Found {} possible XOR rotor permutations'.format(len(rotor_permutations)))
 
     iterations = 0
+    all_done = False
 
     for rotor_lengths_left in rotor_permutations:
+
         logger.info('Trying with XOR rotors {}'.format(rotor_lengths_left))
 
         rotors = [{} for _ in range(10)]
@@ -95,7 +111,12 @@ def crack_3(plaintext, ciphertext):
                     missing_ids.append(rotor_id)
 
             if len(missing_ids)==1:
-                plain_bits = gwriter.ALPHABET_MAP[plaintext_concat[ix]]
+                missing_id = missing_ids[0]
+                plain_char = plaintext_concat[ix]
+                if plain_char == UNKNOWN:
+                    continue
+
+                plain_bits = gwriter.ALPHABET_MAP[plain_char]
                 cipher_bits = gwriter.ALPHABET_MAP[ciphertext_concat[ix]]
 
                 # if xor output has same pre-swap digits, sum of digits will match
@@ -107,11 +128,13 @@ def crack_3(plaintext, ciphertext):
                 rotors[missing_id][ix % rotor_lengths_left[missing_id]] = fill_value
 
         # compute possible right rotors given left rotors and brute force
-        possible_right_rotors = permutations(set(known_rotor_lengths).difference(set(rotor_lengths_left)),5)
+        possible_right_rotors = set(gwriter.ROTOR_LENGTHS).difference(set(rotor_lengths_left))
+        possible_right_rotors = permutations(possible_right_rotors,5)
         possible_right_rotors = list(map(list, possible_right_rotors))
 
         logger.info('Brute force {} possible swap rotor orientations'.format(len(possible_right_rotors)))
 
+        # for each possible swap rotor lengths
         for rotor_lengths_right in possible_right_rotors:
 
             logger.info('Attempting with swap rotors {}'.format(rotor_lengths_right))
@@ -124,14 +147,19 @@ def crack_3(plaintext, ciphertext):
 
             # solve right side
             for ix in range(len(plaintext_concat)):
+
                 # quit early if length of swap rotors == desired rotors lengths
                 if all(len(rotor)==rotor_lengths_right[rotor_id] for rotor_id, rotor in enumerate(rotors[5:])):
                     break
 
-                tmp_swap = [set() for _ in range(5)] # storage for bits
+                plain_char = plaintext_concat[ix]
+                if plain_char == UNKNOWN:
+                    continue
 
                 d = gwriter.ALPHABET_MAP[ciphertext_concat[ix]] # cipher int
-                a = gwriter.ALPHABET_MAP[plaintext_concat[ix]] # plain int
+                a = gwriter.ALPHABET_MAP[plain_char] # plain int
+
+                tmp_swap = [set() for _ in range(5)] # storage for bits
 
                 # xor bits
                 b = 0
@@ -141,18 +169,11 @@ def crack_3(plaintext, ciphertext):
                 # xor output
                 c = a ^ b
 
-                # for all possible swap rotor bits
                 for i in range(32):
                     skip = False
-
-                    # for each swap rotor
                     for rotor_id in range(5,10):
                         bit_id = rotor_id-5
-
-                        # get the persisted swap rotor bit
                         rotor_bit = rotors[rotor_id].get(ix%rotor_lengths[rotor_id])
-
-                        # if it's persisted and != current brute force bit, skip this brute force
                         if (rotor_bit is not None) and (rotor_bit != gwriter.nth_bit(i,4-bit_id)):
                             skip = True
                             break
@@ -160,7 +181,6 @@ def crack_3(plaintext, ciphertext):
                     if skip:
                         continue
 
-                    # do swapping on xor output with brute force rotor bits
                     tmp_c = c
                     if gwriter.nth_bit(i,4):
                         tmp_c = gwriter.swap_bits_left(tmp_c,0,4)
@@ -173,12 +193,10 @@ def crack_3(plaintext, ciphertext):
                     if gwriter.nth_bit(i,0):
                         tmp_c = gwriter.swap_bits_left(tmp_c,3,4)
 
-                    # if swapped == cipher, cache each swap bit as a possibility
                     if tmp_c == d:
                         for tix, t in enumerate(tmp_swap):
                             t.add(gwriter.nth_bit(i, 4-tix))
 
-                # if only 1 possible swap bit for a rotor, persist
                 for s_id, s in enumerate(tmp_swap):
                     if len(s) == 1:
                         bit = s.pop()
@@ -189,12 +207,14 @@ def crack_3(plaintext, ciphertext):
 
             sender = gwriter.GWriter(rotors_bits=rotor_data)
             comparison = (
-                sender.encrypt(plaintext_concat[c]) == ciphertext_concat[c]
-                for c in range(len(plaintext_concat))
+                sender.encrypt(p,UNKNOWN) in (ciphertext_concat[cix], UNKNOWN)
+                for cix,p in enumerate(plaintext_concat)
             )
+
             if all(comparison):
                 logger.info('success in {} brute force iterations'.format(iterations))
                 sender.reset()
+                all_done = True
                 return True, sender
 
     logger.info('failed after {} iterations'.format(iterations))

@@ -72,4 +72,4 @@ if success:
 
 ### The Crack
 
-Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly. The
+Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly. The crack relies on a few 
