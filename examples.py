@@ -54,5 +54,6 @@ def configure_logging():
     root.addHandler(h)
     root.setLevel(logging.INFO)
 
+
 if __name__=='__main__':
     cli()
