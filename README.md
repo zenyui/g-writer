@@ -64,7 +64,7 @@ success, receiver = crack(ciphertext_messages=ciphertext_messages)
 
 if success:  
     ciphertext_messages = ciphertext_messages.strip().splitlines()
-    decrypted_messages = receiver.decrypt(ciphertext_messages)
+    decrypted_messages = receiver.decrypt(ciphertext=ciphertext_messages)
 
     with open('./decrypted_messages.txt','w') as f:
         f.writelines(decrypted_messages)
