@@ -5,20 +5,30 @@ ROTOR_LENGTHS = (47, 53, 59, 61, 64, 65, 67, 69, 71, 73)
 class GWriter():
     '''python implementation of Nazi Geheimschreiber aka G-Writer'''
 
-    def __init__(self, rotors_bits, rotor_offsets=None):
+    def __init__(self, rotors_bits, rotors_offset=None):
         self.iterations = 0
-
-        if not rotor_offsets:
-            rotor_offsets = [0] * len(rotors_bits)
 
         self.rotors = []
         for i,k in enumerate(range(len(rotors_bits))):
             rotor = Rotor(
                 bits=rotors_bits[k],
-                offset=rotor_offsets[i],
+                offset=rotors_offset[i] if rotors_offset else 0,
                 gwriter=self
             )
             self.rotors.append(rotor)
+
+    def copy(self):
+        rotors_bits = []
+        rotors_offsets = []
+        for r in self.rotors:
+            rotors_bits.append(r.bits)
+            rotors_offset.append(r.offset)
+
+        return self.__class__(
+            rotors_bits=rotors_bits,
+            rotors_offset=rotors_offset
+        )
+
 
     def to_str(self):
         output = 'Gwriter Rotors:\n'
@@ -107,7 +117,7 @@ class GWriter():
                 # do reversing XOR
                 c ^= b
                 plaintext += ALPHABET[c]
-                
+
             self.iterations += 1
 
         return plaintext

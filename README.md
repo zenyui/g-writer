@@ -42,7 +42,7 @@ rotors_bits = [
 ]
 
 sender = GWriter(rotors_bits=rotors_bits)
-receiver = GWriter(rotors_bits=rotors_bits)
+receiver = sender.copy()
 
 plaintext = 'UMUM4VEVE35KING4HENRY4IV35'
 ciphertext = sender.encrypt(plaintext) # ciphertext = F4QR72QKRBZFTECBNMTYI6T2XF
@@ -72,4 +72,18 @@ if success:
 
 ### The Crack
 
-Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly. The crack relies on a few 
+Despite the apparent complexity of the G-Writer, this crack is (given enough sample text) able to break the ciphertext instantly.
+
+**Observations**:
+
+- The ciphertext characters `2` and `7` are binary indicies `00000` and `11111` respectively, which are not affected by any swapping actions.  Therefore, these ciphertext characters can be XOR'd directly to the corresponding plaintext character to discover the exact rotor bits in those locations.
+- All messages begin with the string `UMUM4VEVE35` and end with `35`. Given a large enough sample ciphertext, the attack can infer significant portions of the plaintext and, thereby, solve the XOR and swap rotors.
+- If 4/5 XOR bits are known, the 5th can be inferred by comparing the sum of binary digits between the ciphertext and the known XOR'd plaintext.  If the sums match, the 5th XOR bit is a 0, else it is a 1. This works because swapping can only arrange the positions of bits, but not their sum.
+
+**Methodology:**
+
+- Either using known plaintext or inferred (partial) plaintext from message prefix/suffix, locate all `2` and `7` characters in ciphertext and XOR with plaintext to discover a large portion of rotor bits.  As rotor lengths are not yet known, store these known XOR bits for `n` cipher characters into a `[10 x n]` array.
+- Per rotor, traverse known XOR rotor bits and check each bit at position `i` to the bit at position `i + rotor_length` to eliminate rotors who's bits do not repeat. This significantly reduces the permutations of rotor lengths available to the XOR rotors. Sort these permutations according to count of positive matches to push likely rotor length permutations early in the iterations.
+- Per possible XOR rotor configuration, assume those rotor lengths are correct and fill in any bits where the other 4 XOR bits are known.
+- Per possible XOR rotor configurations, attempt all possible swap rotor orientations, and, per rotor, store possible bit values. Once complete, those bits with only one possible value are persisted
+- Use this completed rotor configuration to encrypt the known plaintext and compare against corresponding ciphertext, and return successfully if encryption matches.
